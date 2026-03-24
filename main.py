@@ -384,12 +384,13 @@ def _load_config() -> dict:
 
 
 def _clean_export_dir(export_dir: Path) -> None:
-    """Delete all files in the export directory after a sync cycle."""
-    for f in export_dir.iterdir():
-        try:
-            f.unlink()
-        except OSError as exc:
-            log.warning("Could not delete export file %s: %s", f.name, exc)
+    """Remove the mail_* export directory tree after a sync cycle."""
+    import shutil
+    try:
+        shutil.rmtree(export_dir)
+        log.debug("Removed export directory: %s", export_dir.name)
+    except OSError as exc:
+        log.warning("Could not remove export directory %s: %s", export_dir.name, exc)
 
 
 # ---------------------------------------------------------------------------
