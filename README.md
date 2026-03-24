@@ -77,6 +77,12 @@ To activate the environment manually in future sessions:
 source .venv/bin/activate
 ```
 
+or for fish
+
+```fish
+source .venv/bin/activate.fish
+```
+
 ### 3. Run first-time setup
 
 ```bash
