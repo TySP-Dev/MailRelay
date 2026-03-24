@@ -19,7 +19,7 @@ A self-hosted email forwarding tool that monitors a Proton Mail account on a set
 ## Project layout
 
 ```
-mailrelay/
+MailRelay/
 ├── main.py               Entry point — CLI flags, scheduler startup
 ├── requirements.txt      Python dependencies
 ├── setup.sh              One-shot venv + dependency installer
