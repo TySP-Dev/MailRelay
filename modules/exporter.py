@@ -73,6 +73,8 @@ def run_export(
     out_dir = export_dir or EXPORT_DIR
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    log.info("Starting Proton Mail export...")
+
     try:
         binary = ensure_export_cli()
     except Exception as exc:

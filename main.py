@@ -29,7 +29,7 @@ from modules import packager
 from modules import processor
 from modules import scheduler
 from modules import tools
-from modules.logger import get_logger, tail_log
+from modules.logger import get_logger, configure_logging, tail_log
 
 log = get_logger(__name__)
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
@@ -52,8 +52,11 @@ def main(
     status: bool = typer.Option(False, "--status", help="Print status summary and exit."),
     logs: bool = typer.Option(False, "--logs", help="Tail the log file and exit."),
     change_config: bool = typer.Option(False, "--config", help="Change a config value."),
+    debug: bool = typer.Option(False, "--debug", help="Show all debug output on the console."),
 ) -> None:
     global _master_password
+
+    configure_logging(debug=debug)
 
     if setup:
         _run_setup()
@@ -139,8 +142,22 @@ def _start_service(run_now: bool = False) -> None:
 
     scheduler.start(sync, interval)
 
+    # Auto-run if this is the first sync ever, or the last one was overdue
     if run_now:
         scheduler.run_now(sync)
+    else:
+        last = database.get_last_sync_time()
+        if last is None:
+            log.info("No previous sync found — running immediately.")
+            scheduler.run_now(sync)
+        else:
+            elapsed_min = (datetime.now(timezone.utc) - last).total_seconds() / 60
+            if elapsed_min >= interval:
+                log.info(
+                    "Last sync was %.0f minute(s) ago (interval: %d min) — running immediately.",
+                    elapsed_min, interval,
+                )
+                scheduler.run_now(sync)
 
     log.info("MailRelay running. Press Ctrl+C to stop.")
 
@@ -218,6 +235,8 @@ def _sync_cycle(conf: dict) -> None:
     except Exception as exc:
         log.error("Unexpected error in sync cycle: %s", exc, exc_info=True)
         summary["error"] = str(exc)
+    else:
+        database.record_sync_time()
     finally:
         summary["finished_at"] = datetime.now(timezone.utc).isoformat()
         _last_run = summary

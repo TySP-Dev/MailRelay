@@ -54,6 +54,7 @@ def bundle_emails(emails: list[RichEmail]) -> Optional[str]:
     if not emails:
         return None
 
+    log.info("Converting %d email(s) to MBOX...", len(emails))
     DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
     mbox_filename = f"mailrelay_{timestamp}.mbox"
