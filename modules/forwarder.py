@@ -47,6 +47,8 @@ def push_emails(
     if not emails:
         return [], []
 
+    log.info("Starting IMAP push of %d email(s) to iCloud...", len(emails))
+
     succeeded: list[str] = []
     failed: list[str] = []
 
@@ -70,8 +72,11 @@ def push_emails(
 
     if succeeded:
         mark_delivered(succeeded)
-        log.info("Marked %d message(s) as delivered.", len(succeeded))
 
+    log.info(
+        "IMAP push complete — %d delivered, %d failed.",
+        len(succeeded), len(failed),
+    )
     return succeeded, failed
 
 

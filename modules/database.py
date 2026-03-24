@@ -2,8 +2,9 @@
 
 import sqlite3
 from contextlib import contextmanager
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Generator, Iterable
+from typing import Generator, Iterable, Optional
 
 DB_PATH = Path(__file__).parent.parent / "data" / "mailrelay.db"
 
@@ -47,6 +48,12 @@ def init_db() -> None:
         """)
         conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_state ON messages(state)
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS metadata (
+                key   TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            )
         """)
 
 
@@ -125,6 +132,28 @@ def get_pending_mboxes() -> list[dict]:
         by_path.setdefault(path, []).append(row["message_id"])
 
     return [{"mbox_path": path, "message_ids": ids} for path, ids in by_path.items()]
+
+
+def get_last_sync_time() -> Optional[datetime]:
+    """Return the UTC timestamp of the last completed sync, or None."""
+    with _db() as conn:
+        row = conn.execute(
+            "SELECT value FROM metadata WHERE key = 'last_sync_at'"
+        ).fetchone()
+    if not row:
+        return None
+    return datetime.fromisoformat(row["value"]).replace(tzinfo=timezone.utc)
+
+
+def record_sync_time() -> None:
+    """Record that a sync cycle just completed."""
+    now = datetime.now(timezone.utc).isoformat()
+    with _db() as conn:
+        conn.execute(
+            "INSERT INTO metadata (key, value) VALUES ('last_sync_at', ?) "
+            "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            (now,),
+        )
 
 
 def clear_pending_for_mbox(mbox_path: str) -> list[str]:
