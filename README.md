@@ -21,18 +21,23 @@ A self-hosted email forwarding tool that monitors a Proton Mail account on a set
 ```
 mailrelay/
 ├── main.py               Entry point — CLI flags, scheduler startup
-├── config.py             Encrypted config read/write (age + TOML)
-├── exporter.py           pexpect automation of proton-mail-export-cli
-├── processor.py          EML + metadata merging, dedup check
-├── forwarder.py          IMAP push to iCloud (Mode 1)
-├── packager.py           MBOX generation and local download server (Mode 2)
-├── scheduler.py          APScheduler interval logic
-├── database.py           SQLite dedup tracking
-├── otp.py                pyotp TOTP generation
-├── logger.py             Rotating log setup
-├── tools.py              Proton Export CLI download + install manager
 ├── requirements.txt      Python dependencies
 ├── setup.sh              One-shot venv + dependency installer
+├── modules/
+│   ├── __init__.py
+│   ├── config.py         Encrypted config read/write (age + TOML)
+│   ├── database.py       SQLite dedup tracking
+│   ├── exporter.py       pexpect automation of proton-mail-export-cli
+│   ├── forwarder.py      IMAP push to iCloud (Mode 1)
+│   ├── logger.py         Rotating log setup
+│   ├── otp.py            pyotp TOTP generation
+│   ├── packager.py       MBOX generation and local download server (Mode 2)
+│   ├── processor.py      EML + metadata merging, dedup check
+│   ├── scheduler.py      APScheduler interval logic
+│   └── tools.py          Proton Export CLI download + install manager
+├── tools/
+│   └── proton-export/
+│       └── proton-mail-export-cli   (downloaded on first run)
 └── data/
     ├── config.age        Encrypted config (created on first run)
     ├── mailrelay.db      SQLite database (created on first run)
