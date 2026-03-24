@@ -48,13 +48,11 @@ class ConfigError(Exception):
 # ---------------------------------------------------------------------------
 
 def _encrypt(plaintext: str, passphrase: str) -> bytes:
-    identity = pyrage.passphrase.Recipient(passphrase)
-    return pyrage.encrypt(plaintext.encode(), [identity])
+    return pyrage.passphrase.encrypt(plaintext.encode(), passphrase)
 
 
 def _decrypt(ciphertext: bytes, passphrase: str) -> str:
-    identity = pyrage.passphrase.Identity(passphrase)
-    return pyrage.decrypt(ciphertext, [identity]).decode()
+    return pyrage.passphrase.decrypt(ciphertext, passphrase).decode()
 
 
 # ---------------------------------------------------------------------------
