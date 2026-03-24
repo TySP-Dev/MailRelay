@@ -82,6 +82,13 @@ def main(
 # Setup
 # ---------------------------------------------------------------------------
 
+def _ensure_data_dirs() -> None:
+    """Create data/, data/exports/, and data/downloads/ if they don't exist."""
+    base = Path(__file__).parent / "data"
+    for sub in ("", "exports", "downloads"):
+        (base / sub).mkdir(parents=True, exist_ok=True)
+
+
 def _run_setup() -> None:
     if cfg.config_exists():
         overwrite = typer.confirm(
@@ -89,6 +96,8 @@ def _run_setup() -> None:
         )
         if not overwrite:
             raise typer.Abort()
+
+    _ensure_data_dirs()
 
     # Ensure the export CLI is present before finishing setup
     try:
@@ -109,6 +118,8 @@ def _run_setup() -> None:
 
 def _start_service(run_now: bool = False) -> None:
     global _master_password
+
+    _ensure_data_dirs()
 
     # Verify the export CLI is present (offers download if missing)
     try:
