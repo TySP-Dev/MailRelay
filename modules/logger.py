@@ -5,7 +5,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 LOG_PATH = Path(__file__).parent.parent / "data" / "mailrelay.log"
-LOG_FORMAT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+LOG_FORMAT = "%(asctime)s [%(levelname)-8s] %(name)s.%(funcName)s:%(lineno)d — %(message)s"
 MAX_BYTES = 5 * 1024 * 1024  # 5 MB
 BACKUP_COUNT = 3
 
@@ -27,9 +27,9 @@ def get_logger(name: str) -> logging.Logger:
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
 
-    # Console handler (INFO and above)
+    # Console handler (all levels)
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
+    console_handler.setLevel(logging.DEBUG)
     console_handler.setFormatter(logging.Formatter(LOG_FORMAT))
 
     logger.addHandler(file_handler)
