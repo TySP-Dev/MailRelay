@@ -1,6 +1,6 @@
 # MailRelay
 
-A self-hosted email forwarding tool that monitors a Proton Mail account on a set interval, exports new emails using the official Proton Mail Export CLI, and forwards them to an iCloud Mail account.
+A self-hosted email forwarding service for iCloud, Gmail, Outlook, and Proton Mail. Primarily for Proton Mail's paid forwarding restriction, the tool provides a free and open source alternative for forwarding Proton Mail messages to any supported mailbox, while also being able to forward mail from other supported providers.
 
 ---
 
@@ -12,7 +12,17 @@ A self-hosted email forwarding tool that monitors a Proton Mail account on a set
 | `wget` | Pre-installed on most Linux distros; on macOS: `brew install wget` |
 | Linux x86\_64 **or** macOS (for testing) | The Proton Export CLI download is the Linux x86\_64 build |
 | iCloud app-specific password | Generate at [appleid.apple.com](https://appleid.apple.com) → Sign-In and Security → App-Specific Passwords |
-| Proton Mail TOTP secret | The **base32 secret key** shown when you first enabled 2FA in Proton Mail settings (not a one-time code) |
+| Gmail app-specific password | Requires 2FA enabled. Generate at [myaccount.google.com](https://myaccount.google.com) → Security → 2-Step Verification → App passwords |
+| Outlook app-specific password | Requires 2FA enabled. Generate at [account.microsoft.com](https://account.microsoft.com) → Security → Advanced security options → App passwords |
+| Proton Mail TOTP secret | The **base32 secret key** shown when you first enabled 2FA in Proton Mail settings (not a one-time code). You can also find this in your password manager or TOTP app |
+
+> [!NOTE]
+> If your password/TOTP manager stores your TOTP secret as a URL, look for `secret=` in the URL.
+> 
+> **Example:**
+> `otpauth://totp/entry%20name:youremail%40proton.me?...&secret=your_secret_here&...`
+> 
+> In this case, your TOTP secret would be `your_secret_here`.
 
 ---
 
@@ -28,7 +38,7 @@ MailRelay/
 │   ├── config.py         Encrypted config read/write (age + TOML)
 │   ├── database.py       SQLite dedup tracking
 │   ├── exporter.py       pexpect automation of proton-mail-export-cli
-│   ├── forwarder.py      IMAP push to iCloud (Mode 1)
+│   ├── forwarder.py      IMAP push (Mode 1)
 │   ├── logger.py         Rotating log setup
 │   ├── otp.py            pyotp TOTP generation
 │   ├── packager.py       MBOX generation and local download server (Mode 2)
@@ -241,3 +251,6 @@ tail -f data/mailrelay.log
 | `fastapi` + `uvicorn` | Local MBOX download server |
 
 All stdlib modules used (`imaplib`, `sqlite3`, `email`, `mailbox`, `logging`, `tarfile`) require no installation.
+
+> [!NOTE]
+> All product and company names are trademarks™ or registered® trademarks of their respective holders. Use of them does not imply any affiliation with or endorsement by them.
