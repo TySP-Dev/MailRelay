@@ -3,6 +3,7 @@
 Usage examples:
   python main.py --setup          First-time setup wizard
   python main.py                  Start the background service (prompts for master password)
+  python main.py --debug          Start MailRelay with debug logs (prompts for master password)
   python main.py --run-now        Immediate sync then keep running
   python main.py --status         Print last-run summary and exit
   python main.py --logs           Tail the log file and exit

@@ -14,6 +14,10 @@ Config schema (as TOML):
     email    = "user@icloud.com"
     password = "..."           # app-specific password
 
+    [gmail]
+    email    = "user@gmail.com"
+    password = "..."           # app-specific password
+
     [preferences]
     delivery_mode     = "imap"   # "imap" | "mbox"
     poll_interval_min = 60       # integer minutes
@@ -31,11 +35,17 @@ CONFIG_PATH = Path(__file__).parent.parent / "data" / "config.age"
 # Keys we expose to the rest of the app
 REQUIRED_KEYS = {
     "proton": ["email", "password", "totp_secret"],
+    "proton_receive": ["email", "password", "totp_secret"],
     "icloud": ["email", "password"],
+    "icloud_receive": ["email", "password"],
+    "gmail": ["email", "password"],
+    "gmail_receive": ["email", "password"],
+    "outlook": ["email", "password"],
+    "outlook_receive": ["email", "password"],
     "preferences": ["delivery_mode", "poll_interval_min"],
 }
 
-DELIVERY_MODES = ("imap", "mbox")
+DELIVERY_MODES = ("imap", "mbox", "proton")
 MIN_INTERVAL_MIN = 15
 
 
@@ -142,21 +152,124 @@ def build_config_interactively() -> tuple[dict[str, Any], str]:
 
     print("\n=== MailRelay First-Time Setup ===\n")
 
-    proton_email = input("Proton Mail email address: ").strip()
-    proton_password = getpass.getpass("Proton Mail password: ")
-    proton_mailbox_pw = getpass.getpass(
-        "Proton Mail mailbox password (leave blank if none): "
-    )
-    totp_secret = input("TOTP secret key (base32, from your 2FA setup): ").strip()
+    # Service to forward
+    print("\nWhat service do you want to forward?")
+    print("  1) Proton Email")
+    print("  2) Gmail")
+    print("  3) Outlook")
+    print("  4) iCloud")
 
-    icloud_email = input("\niCloud email address: ").strip()
-    icloud_password = getpass.getpass("iCloud app-specific password: ")
+    # Ensuring vaild choice
+    while True:
+        export_choice = input("Choose [1/2/3/4]: ").strip()
 
-    print("\nDelivery mode:")
-    print("  1) Automatic IMAP push to iCloud (default)")
-    print("  2) Manual MBOX download")
-    mode_choice = input("Choose [1/2, default 1]: ").strip() or "1"
-    delivery_mode = "imap" if mode_choice != "2" else "mbox"
+        try:
+            if int(export_choice) in [1,2,3,4]:
+                break
+            print("Invalid option")
+        except ValueError:
+            print("Invalid option")
+
+    # Service to receive
+    print("\nWhat service do you want to receive?")
+    print("  1) Different Proton email" if export_choice == "1" else "  1) Proton email")
+    print("  2) Different Gmail" if export_choice == "2" else "  2) Gmail")
+    print("  3) Different Outlook" if export_choice == "3" else "  3) Outlook")
+    print("  4) Different iCloud" if export_choice == "4" else "  4) iCloud")
+
+    # Ensuring vaild choice
+    while True:
+        forward_choice = input("Choose [1/2/3/4]: ").strip()
+
+        try:
+            if int(forward_choice) in [1,2,3,4]:
+                break
+            print("Invalid option")
+
+        except ValueError:
+            print("Invalid option")
+     
+    # Ensuring no missing value errors
+    proton_email = None
+    proton_email_receive = None
+    proton_password = None
+    proton_password_receive = None
+    proton_mailbox_pw = None
+    proton_mailbox_pw_receive = None
+    totp_secret = None
+    totp_secret_receive = None
+    gmail_email = None
+    gmail_email_receive = None
+    gmail_password = None
+    gmail_password_receive = None
+    outlook_email = None
+    outlook_email_receive = None
+    outlook_password = None
+    outlook_password_receive = None
+    icloud_email = None
+    icloud_email_receive = None
+    icloud_password = None
+    icloud_password_receive = None
+
+    # Proton account login info
+    if export_choice == "1":
+        proton_email = input("Proton email address to forward: ").strip()
+        proton_password = getpass.getpass("Proton password: ")
+        proton_mailbox_pw = getpass.getpass(
+            "Proton Mail mailbox password (leave blank if none): "
+        )
+        totp_secret = input("TOTP secret key (base32, from your 2FA setup): ").strip()
+
+    if forward_choice == "1":
+        proton_email_receive = input("Proton email address to receive: ").strip()
+        proton_password_receive = getpass.getpass("Proton password: ")
+        proton_mailbox_pw_receive = getpass.getpass(
+            "Proton Mail mailbox password (leave blank if none): "
+        )
+        totp_secret_receive = input("TOTP secret key (base32, from your 2FA setup): ").strip()
+
+    # Gmail login info
+    if export_choice == "2":
+        gmail_email = input("\nGmail email address to forward: ").strip()
+        gmail_password = getpass.getpass("Google account app-specific password: ")
+
+    if forward_choice == "2":
+        gmail_email_receive = input("\nGmail email address to receive: ").strip()
+        gmail_password_receive = getpass.getpass("Google account app-specific password: ")
+
+    # Outlook login info
+    if export_choice == "3":
+        outlook_email = input("\nOutlook email address to forward: ").strip()
+        outlook_password = getpass.getpass("Microsoft app-specific password: ")
+
+    if forward_choice == "3":
+        outlook_email_receive = input("\nOutlook email address to receive: ").strip()
+        outlook_password_receive = getpass.getpass("Microsoft app-specific password: ")
+
+    # iCloud login info
+    if export_choice == "4":
+        icloud_email = input("\niCloud email address to forward: ").strip()
+        icloud_password = getpass.getpass("iCloud app-specific password: ")
+
+    if forward_choice == "4":
+        icloud_email_receive = input("\niCloud email address to receive: ").strip()
+        icloud_password_receive = getpass.getpass("iCloud app-specific password: ")
+    
+    # Delivery Dialog
+    if forward_choice == "4":
+        print("\nDelivery mode:")
+        print("  1) Automatic IMAP push (default)")
+        print("  2) Manual MBOX download")
+        mode_choice = input("Choose [1/2, default 1]: ").strip() or "1"
+        delivery_mode = "imap" if mode_choice != "2" else "mbox"
+
+    elif forward_choice == "1":
+        print("\nUsing Proton export/import CLI tool")
+        delivery_mode = "proton"
+
+    else:
+        print("\nWARNING: GMAIL AND OUTLOOK DO NOT SUPPORT MBOX \nUsing IMAP push")
+        delivery_mode = "imap"
 
     print("\nPolling interval:")
     print("  1) 15 minutes")
@@ -191,9 +304,35 @@ def build_config_interactively() -> tuple[dict[str, Any], str]:
             "mailbox_password": proton_mailbox_pw,
             "totp_secret": totp_secret,
         },
+        "proton_receive": {
+            "email": proton_email_receive,
+            "password": proton_password_receive,
+            "mailbox_password": proton_mailbox_pw_receive,
+            "totp_secret": totp_secret_receive,
+        },
         "icloud": {
             "email": icloud_email,
             "password": icloud_password,
+        },
+        "icloud_receive": {
+            "email": icloud_email_receive,
+            "password": icloud_password_receive,
+        },
+        "gmail": {
+            "email": gmail_email,
+            "password": gmail_password,
+        },
+        "gmail_receive": {
+            "email": gmail_email_receive,
+            "password": gmail_password_receive,
+        },
+        "outlook": {
+            "email": outlook_email,
+            "password": outlook_password,
+        },
+        "outlook_receive": {
+            "email": outlook_email_receive,
+            "password": outlook_password_receive,
         },
         "preferences": {
             "delivery_mode": delivery_mode,
